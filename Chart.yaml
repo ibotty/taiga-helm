@@ -2,8 +2,8 @@ apiVersion: v2
 name: taiga
 description: A Helm chart for Taiga, for OpenShift/OKD
 type: application
-version: 6.4.3
-appVersion: 6.4.3
+version: 6.5.1
+appVersion: 6.5.1
 maintainers:
   - name: Tobias Florek
     email: github@ibotty.net
