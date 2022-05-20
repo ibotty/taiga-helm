@@ -8,8 +8,9 @@ metadata:
 spec:
   ports:
     - name: http
-      port: 80
+      port: {{ .Values.taigaGateway.service.port }}
       targetPort: http
+  type: {{ .Values.taigaGateway.service.type }}
   selector:
     {{- include "taiga.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: taiga-gateway

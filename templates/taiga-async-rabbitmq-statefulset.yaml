@@ -1,7 +1,11 @@
+{{- $fullName := include "taiga.fullname" . -}}
+{{- $isTag := .Values.taigaAsyncRabbitmq.image.tag -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ include "taiga.fullname" . }}-async-rabbitmq
+  annotations:
+    image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"{{ $fullName }}-async-rabbitmq:{{ $isTag }}"},"fieldPath":"spec.template.spec.containers[?(@.name==\"taiga-async-rabbitmq\")].image"}]'
   labels:
     {{- include "taiga.labels" . | nindent 4 }}
     app.kubernetes.io/component: taiga-async-rabbitmq
@@ -32,7 +36,11 @@ spec:
         - name: taiga-async-rabbitmq
           securityContext:
             {{- toYaml .Values.taigaAsyncRabbitmq.securityContext | nindent 12 }}
-          image: "{{ .Values.taigaAsyncRabbitmq.image.repository }}:{{ .Values.taigaAsyncRabbitmq.image.tag }}"
+          {{- if .Values.taigaImageStreams.enable }}
+          image: "{{ .Values.taigaImageStreams.registryURL }}/{{ .Release.Namespace }}/{{ include "taiga.fullname" . }}-async-rabbitmq:{{ $isTag }}"
+          {{- else }}
+          image: "{{ .Values.taigaAsyncRabbitmq.image.repository }}:{{ $isTag }}"
+          {{- end }}
           imagePullPolicy: {{ .Values.taigaAsyncRabbitmq.image.pullPolicy }}
           ports:
             - name: amqp

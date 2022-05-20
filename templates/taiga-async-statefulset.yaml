@@ -1,12 +1,16 @@
+{{- $fullName := include "taiga.fullname" . -}}
+{{- $isTag := .Values.taigaAsync.image.tag | default .Chart.AppVersion -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "taiga.fullname" . }}-async
+  name: {{ $fullName }}-async
+  annotations:
+    image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"{{ $fullName }}-back:{{ $isTag }}"},"fieldPath":"spec.template.spec.containers[?(@.name==\"taiga-async\")].image"}]'
   labels:
     {{- include "taiga.labels" . | nindent 4 }}
     app.kubernetes.io/component: taigaAsync
 spec:
-  serviceName: {{ template "taiga.fullname" . }}-async
+  serviceName: {{ $fullName }}-async
   replicas: 1
   selector:
     matchLabels:
@@ -32,7 +36,11 @@ spec:
         - name: taiga-async
           securityContext:
             {{- toYaml .Values.taigaAsync.securityContext | nindent 12 }}
-          image: "{{ .Values.taigaAsync.image.repository }}:{{ .Values.taigaAsync.image.tag | default .Chart.AppVersion }}"
+          {{- if .Values.taigaImageStreams.enable }}
+          image: "{{ .Values.taigaImageStreams.registryURL }}/{{ .Release.Namespace }}/{{ $fullName }}-async:{{ $isTag }}"
+          {{- else }}
+          image: "{{ .Values.taigaAsync.image.repository }}:{{ $isTag }}"
+          {{- end }}
           imagePullPolicy: {{ .Values.taigaAsync.image.pullPolicy }}
           ports:
             - name: http
@@ -43,21 +51,38 @@ spec:
             - name: ENABLE_TELEMETRY
               value: {{ lower .Values.env.enableTelemetry | quote }}
 
+            {{- if .Values.taigaZalandoDB.enable }}
             - name: POSTGRES_HOST
-              value: "{{template "taiga.fullname" . }}-db"
+              value: {{ $fullName }}-db
+            - name: POSTGRES_DB
+              value: taiga
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: taiga.{{ $fullName }}-db.credentials.postgresql.acid.zalan.do
+                  key: password
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: taiga.{{ $fullName }}-db.credentials.postgresql.acid.zalan.do
+                  key: username
+            {{- else }}
+            - name: POSTGRES_HOST
+              value: "{{ $fullName }}-db"
             - name: POSTGRES_DB
               value: {{ .Values.env.postgresDB | quote }}
             - name: POSTGRES_PASSWORD
               value: {{ .Values.env.postgresPassword | quote }}
             - name: POSTGRES_USER
               value: {{ .Values.env.postgresUser | quote }}
+            {{- end }}
 
             - name: RABBITMQ_PASS
               value: {{ .Values.env.rabbitmqPass | quote }}
             - name: RABBITMQ_USER
               value: {{ .Values.env.rabbitmqUser | quote }}
 #            - name: CELERY_BROKER_URL
-#              value: "amqp://taiga:taiga@{{template "taiga.fullname" . }}-async-rabbitmq:{{  .Values.taigaAsyncRabbitmq.service.port }}/taiga"
+#              value: "amqp://taiga:taiga@{{ $fullName }}-async-rabbitmq:{{  .Values.taigaAsyncRabbitmq.service.port }}/taiga"
 
             - name: TAIGA_SECRET_KEY
               value: {{ .Values.env.taigaSecretKey | quote }}
@@ -90,7 +115,7 @@ spec:
       volumes:
         - name: taiga-static-data
           persistentVolumeClaim:
-            claimName: {{ include "taiga.fullname" . }}-static-data
+            claimName: {{ $fullName }}-static-data
         - name: taiga-media-data
           persistentVolumeClaim:
-            claimName: {{ include "taiga.fullname" . }}-media-data
+            claimName: {{ $fullName }}-media-data

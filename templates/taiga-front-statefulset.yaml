@@ -1,7 +1,11 @@
+{{- $fullName := include "taiga.fullname" . -}}
+{{- $isTag := .Values.taigaFront.image.tag | default .Chart.AppVersion -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name:  {{ include "taiga.fullname" . }}-front
+  annotations:
+    image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"{{ $fullName }}-front:{{ $isTag }}"},"fieldPath":"spec.template.spec.containers[?(@.name==\"taiga-front\")].image"}]'
   labels:
     {{- include "taiga.labels" . | nindent 4 }}
     app.kubernetes.io/component: taiga-front
@@ -32,11 +36,15 @@ spec:
         - name: taiga-front
           securityContext:
             {{- toYaml .Values.taigaFront.securityContext | nindent 12 }}
-          image: "{{ .Values.taigaFront.image.repository }}:{{ .Values.taigaFront.image.tag | default .Chart.AppVersion }}"
+          {{- if .Values.taigaImageStreams.enable }}
+          image: "{{ .Values.taigaImageStreams.registryURL }}/{{ .Release.Namespace }}/{{ include "taiga.fullname" . }}-front:{{ $isTag }}"
+          {{- else }}
+          image: "{{ .Values.taigaFront.image.repository }}:{{ $isTag }}"
+          {{- end }}
           imagePullPolicy: {{ .Values.taigaFront.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: 80
+              containerPort: 8080
           env:
             - name: TAIGA_URL
               value: {{ .Values.env.taigaURL | quote }}

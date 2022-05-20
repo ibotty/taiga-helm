@@ -1,0 +1,24 @@
+{{- if and .Values.taigaGateway.route.enabled -}}
+{{- $fullName := include "taiga.fullname" . -}}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "taiga.labels" . | nindent 4 }}
+  {{- with .Values.taigaGateway.route.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+{{- if .Values.taigaGateway.route.tls }}
+  tls:
+    {{- toYaml .Values.taigaGateway.route.tls | nindent 4 }}
+{{- end }}
+  to:
+    kind: Service
+    name: {{ $fullName }}-gateway
+  port:
+    targetPort: {{ .Values.taigaGateway.service.port }}
+  host: {{ .Values.taigaGateway.route.host }}
+{{- end }}

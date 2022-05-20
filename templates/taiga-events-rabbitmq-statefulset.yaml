@@ -1,7 +1,11 @@
+{{- $fullName := include "taiga.fullname" . -}}
+{{- $isTag := .Values.taigaEventsRabbitmq.image.tag -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name:  {{ include "taiga.fullname" . }}-events-rabbitmq
+  annotations:
+    image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"{{ $fullName }}-events-rabbitmq:{{ $isTag }}"},"fieldPath":"spec.template.spec.containers[?(@.name==\"taiga-events-rabbitmq\")].image"}]'
   labels:
     {{- include "taiga.labels" . | nindent 4 }}
     app.kubernetes.io/component: taiga-events-rabbitmq
@@ -36,7 +40,11 @@ spec:
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          image: "{{ .Values.taigaEventsRabbitmq.image.repository }}:{{ .Values.taigaEventsRabbitmq.image.tag }}"
+          {{- if .Values.taigaImageStreams.enable }}
+          image: "{{ .Values.taigaImageStreams.registryURL }}/{{ .Release.Namespace }}/{{ include "taiga.fullname" . }}-events-rabbitmq:{{ $isTag }}"
+          {{- else }}
+          image: "{{ .Values.taigaEventsRabbitmq.image.repository }}:{{ $isTag }}"
+          {{- end }}
           imagePullPolicy: {{ .Values.taigaEventsRabbitmq.image.pullPolicy }}
           ports:
             - name: amqp

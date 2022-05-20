@@ -1,15 +1,17 @@
-[![GitHub license](https://img.shields.io/github/license/nemonik/taiga-helm)](./LICENSE)
-[![GitHub Forks](https://img.shields.io/github/forks/nemonik/taiga-helm?style=social)](https://github.com/nemonik/ameersbn-gitlab-helm/network/members)
-[![Github Stars](https://img.shields.io/github/stars/nemonik/taiga-helm?style=social)](https://github.com/nemonik/ameersbn-gitlab-helm/stargazers)
-<a href="https://www.buymeacoffee.com/nemonik" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="20" width="85"></a>
+[![GitHub license](https://img.shields.io/github/license/ibotty/taiga-helm)](./LICENSE)
+[![GitHub Forks](https://img.shields.io/github/forks/ibotty/taiga-helm?style=social)](https://github.com/ibotty/ameersbn-gitlab-helm/network/members)
+[![Github Stars](https://img.shields.io/github/stars/ibotty/taiga-helm?style=social)](https://github.com/ibotty/ameersbn-gitlab-helm/stargazers)
 
 # taiga-helm
 
-A helm chart for Taiga based off of the taiga-docker project found at [https://github.com/kaleidos-ventures/taiga-docker/](https://github.com/kaleidos-ventures/taiga-docker/).
+A helm chart for Taiga based off the [taiga helm chart by nemonik](https://github.com/nemonik/taiga-helm) which itself is based of the taiga-docker project found at [https://github.com/kaleidos-ventures/taiga-docker/](https://github.com/kaleidos-ventures/taiga-docker/).
+
+Changes to nemonik's chart is that it is very opiniated in that it uses OpenShift/OKD resources to work around docker hub's rate limits and uses the [zalando postgres-operator](https://github.com/zalando/postgres-operator/)'s `postgresql` resource for the DB.
 
 ## Requirements
 
 Written for Helm 3.
+Needs OpenShift/OKD 4.x and Zalando's [Postgres-Operator](https://github.com/zalando/postgres-operator/).
 
 ## Helm chart values
 
@@ -88,4 +90,4 @@ Peruse this for insight.
 
 ## Author Information
 
-Michael Joseph Walsh <mjwalsh@nemonik.com>
+Michael Joseph Walsh <mjwalsh@nemonik.com>, Tobias Florek <github@ibotty.net>

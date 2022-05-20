@@ -130,7 +130,7 @@ taigaAsync:
   image:
     repository: taigaio/taiga-back      
     pullPolicy: IfNotPresent
-    tag: "{{ .Chart.AppVersion }}"
+    #tag: "{{ .Chart.AppVersion }}"
 
   service:
     type: ClusterIP
@@ -163,7 +163,7 @@ taigaBack:
   image:
     repository: taigaio/taiga-back
     pullPolicy: IfNotPresent
-    tag: " {{ .Chart.AppVersion }}"
+    #tag: " {{ .Chart.AppVersion }}"
 
   service:
     type: ClusterIP
@@ -190,10 +190,20 @@ taigaBack:
 
   affinity: {}
 
+taigaZalandoDB:
+  enable: true
+  persistence:
+    size: '100Mi'
+    ## Sets persistent volume claim's storageClassName. Defaults to `default`.
+    ##
+    storageClassName: 'default'
+  numberOfInstances: 1
+  postgresqlConfig:
+    postgresql:
+      version: "13"
 
 taigaDB:
-
-  enable: true
+  enable: false
 
   image:
     repository: postgres     
@@ -284,7 +294,7 @@ taigaEvents:
   image:
     repository: taigaio/taiga-events     
     pullPolicy: IfNotPresent
-    tag: "6.1.1"
+    tag: "6.5.0"
 
   service:
     type: ClusterIP
@@ -317,7 +327,7 @@ taigaFront:
   image:
     repository: taigaio/taiga-front  
     pullPolicy: IfNotPresent
-    tag: "{{ .Chart.AppVersion }}"
+    #tag: "{{ .Chart.AppVersion }}"
 
   service:
     type: ClusterIP
@@ -348,9 +358,9 @@ taigaFront:
 taigaGateway:
 
   image:
-    repository: nginx    
+    repository: nginxinc/nginx-unprivileged
     pullPolicy: IfNotPresent
-    tag: "1.19-alpine"
+    tag: "1.21-alpine"
 
   persistence:
     ## Volume used to store the Taiga Gateway's data. Default is boolean `false`.
@@ -373,9 +383,14 @@ taigaGateway:
         paths:
           -  "/"
 
+  route:
+    enable: false
+    annotations: {}
+    host: taiga.example.com
+
   service:
     type: ClusterIP
-    port: 9000
+    port: 8080
 
   podAnnotations: {}
 
@@ -404,7 +419,8 @@ taigaProtected:
   image:
     repository: taigaio/taiga-protected     
     pullPolicy: IfNotPresent
-    tag: "{{ .Chart.AppVersion }}"
+    #tag: "{{ .Chart.AppVersion }}"
+    tag: 6.5.0
 
   service:
     type: ClusterIP
@@ -430,3 +446,7 @@ taigaProtected:
   tolerations: []
 
   affinity: {}
+
+taigaImageStreams:
+  enable: false
+  registryURL: image-registry.openshift-image-registry.svc:5000

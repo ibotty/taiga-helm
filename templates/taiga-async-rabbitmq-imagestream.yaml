@@ -1,0 +1,19 @@
+{{- if .Values.taigaImageStreams.enable }}
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: {{ include "taiga.fullname" . }}-async-rabbitmq
+  labels:
+    {{- include "taiga.labels" . | nindent 4 }}
+spec:
+  lookupPolicy:
+    local: false
+  tags:
+  - from:
+      kind: DockerImage
+      name: {{ .Values.taigaAsyncRabbitmq.image.repository }}:{{ .Values.taigaAsyncRabbitmq.image.tag }}
+    importPolicy: {}
+    name: {{ .Chart.AppVersion }}
+    referencePolicy:
+      type: Local
+{{- end }}

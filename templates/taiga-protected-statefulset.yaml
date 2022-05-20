@@ -1,7 +1,11 @@
+{{- $fullName := include "taiga.fullname" . -}}
+{{- $isTag := .Values.taigaProtected.image.tag | default .Chart.AppVersion -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ include "taiga.fullname" . }}-protected
+  annotations:
+    image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"{{ $fullName }}-protected:{{ $isTag }}"},"fieldPath":"spec.template.spec.containers[?(@.name==\"taiga-protected\")].image"}]'
   labels:
     {{- include "taiga.labels" . | nindent 4 }}
     app.kubernetes.io/component: taiga-protected
@@ -32,7 +36,11 @@ spec:
         - name: taiga-protected
           securityContext:
             {{- toYaml .Values.taigaProtected.securityContext | nindent 12 }}
-          image: "{{ .Values.taigaProtected.image.repository }}:{{ .Values.taigaProtected.image.tag }}"
+          {{- if .Values.taigaImageStreams.enable }}
+          image: "{{ .Values.taigaImageStreams.registryURL }}/{{ .Release.Namespace }}/{{ include "taiga.fullname" . }}-protected:{{ $isTag }}"
+          {{- else }}
+          image: "{{ .Values.taigaProtected.image.repository }}:{{ $isTag }}"
+          {{- end }}
           imagePullPolicy: {{ .Values.taigaProtected.image.pullPolicy }}
           ports:
             - name: http

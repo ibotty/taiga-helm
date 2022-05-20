@@ -1,0 +1,22 @@
+{{- if .Values.taigaZalandoDB.enable }}
+apiVersion: acid.zalan.do/v1
+kind: postgresql
+metadata:
+  name: {{ include "taiga.fullname" . }}-db
+  labels:
+    {{- include "taiga.labels" . | nindent 4 }}
+    team: {{ include "taiga.fullname" . }}
+    app.kubernetes.io/component: taiga-zalando-db
+spec:
+  teamId: {{ include "taiga.fullname" . }}
+  numberOfInstances: {{ .Values.taigaZalandoDB.numberOfInstances }}
+  users:
+    taiga:
+    - LOGIN
+  databases:
+    taiga: taiga
+  volume:
+    size: {{ .Values.taigaZalandoDB.persistence.size }}
+    storageClass: {{ .Values.taigaZalandoDB.persistence.storageClassName }}
+  {{ toYaml .Values.taigaZalandoDB.postgresqlConfig | nindent 2 }}
+{{- end }}
